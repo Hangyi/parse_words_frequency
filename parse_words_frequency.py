@@ -53,20 +53,18 @@ else:
     no_punctuation_countents = contents.translate(remap)
     words = no_punctuation_countents.split()
     # print(words)
-
+   
 
     
     # 获得去重后的单词列表
     unique_words = list(set(words))
+ # 删掉长度<3的单词
+    for word in unique_words[0:]:
+        if len(word) < 3:
+            unique_words.remove(word)
 
-    # 删掉长度<3的单词
-    # for word in unique_words:
-    #     if len(word) < 3:
-    #         unique_words.remove[word]
-    #     else:
-    #         print(word)
-    # def word_len():
-    #     return(len(word) > 3)
+    # print(unique_words)
+
     # 统计有多少不重复的单词
     num_unique_words = len(unique_words)
     print(num_unique_words)
