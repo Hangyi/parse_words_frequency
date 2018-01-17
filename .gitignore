@@ -105,3 +105,6 @@ venv.bak/
 
 # osx
 .DS_Store
+
+# Exclude running results
+*.txt
