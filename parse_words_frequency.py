@@ -1,66 +1,48 @@
-"""
-    还要不完善的地方
-    1. ’s, 've, 're, 没有删去
-    2. 有些数字，乱入
-    3. 一个单词的时态变化重复计数
-    4. 程序不够模块化
-    5. 白名单功能，根据柯林斯词频分级,设置筛选粒度
-    6. 自动加上中文意思
-"""
-file_path = '/Users/hangyi/Desktop/python_work/chapter10/alice.txt'
+import re
 
-try:    
+file_path = '/Users/hangyi/Desktop/python_work/chapter10/alice.txt'
+ 
+try:
     with open(file_path, encoding = 'utf8') as f_obj:
-        contents = f_obj.read().lower()                                                                                         
+        contents = f_obj.read()                                                                                    
 except FileNotFoundError:
     msg = "Sorry, the file " + file_path + " does not exist."
     print(msg)
 else:
-    # 去掉字符串里的标点符号   
-    remap = {
-        ord(',') : None,
-        ord('.') : None,
-        ord('?') : None,
-        ord('!') : None,
-        ord('(') : None,
-        ord(')') : None,
-        ord('[') : None,
-        ord(']') : None,
-        ord('{') : None,
-        ord('}') : None,
-        ord('*') : None,
-        ord(';') : None,
-        ord(':') : None,
-        ord('"') : None,
-        ord('#') : None,
-        ord('0') : ' ',
-        ord('1') : ' ',
-        ord('2') : ' ',
-        ord('3') : ' ',
-        ord('4') : ' ',
-        ord('5') : ' ',
-        ord('6') : ' ',
-        ord('7') : ' ',
-        ord('8') : ' ',
-        ord('9') : ' ',
-        ord('-') : ' ',
-        ord('\'') : ' ',
-        ord('/') : ' ',
-    }
+    # 使用正则
+    clean_contents = re.sub('[\t\n]+', " ", contents) # 删除制表符和换行符
+    clean_contents = re.sub("[^A-Za-z\s]", " ", contents) 
 
-    # text = contents.translate(remap)
-    # 将字符串转化为单词列表
-    no_punctuation_countents = contents.translate(remap)
-    words = no_punctuation_countents.split()
+
+    words = clean_contents.split()
     # print(words)
-   
-
     
     # 获得去重后的单词列表
     unique_words = list(set(words))
- # 删掉长度<3的单词
+    
+    # coca前150单词
+    commonWords = ["the", "be", "and", "of", "a", "in", "to", "have", "it", 
+        "i", "that", "for", "you", "he", "with", "on", "do", "say", "this",
+        "they", "is", "an", "at", "but","we", "his", "from", "that", "not", 
+        "by", "she", "or", "as", "what", "go", "their","can", "who", "get", 
+        "if", "would", "her", "all", "my", "make", "about", "know", "will", 
+        "as", "up", "one", "time", "has", "been", "there", "year", "so", 
+        "think", "when", "which", "them", "some", "me", "people", "take", 
+        "out", "into", "just", "see", "him", "your", "come", "could", "now", 
+        "than", "like", "other", "how", "then", "its", "our", "two", "more", 
+        "these", "want", "way", "look", "first", "also", "new", "because", 
+        "day", "more", "use", "no", "man", "find", "here", "thing", "give", 
+        "many", "well", "only", "those", "tell", "one", "very", "her", 
+        "even", "back", "any", "good", "woman", "through", "us", "life",
+        "child", "there", "work", "down", "may", "after", "should", "call",
+        "world", "over", "school", "still", "try", "in", "as", "last", 
+        "ask", "need", "too", "fell", "three", "when", "state", "never",
+        "become", "between", "high", "really", "something", "most", "another",
+        "much", "family", "own", "out", "leave"] 
+
+    # 删掉长度<3的单词和处于commonWords里的单词
     for word in unique_words[0:]:
-        if len(word) < 3:
+        if len(word) < 3 or word in commonWords:
             unique_words.remove(word)
 
     # print(unique_words)
@@ -73,7 +55,7 @@ else:
     #遍历列表，统计每个单词出现的数量
     word_result = {}
     for word in unique_words:
-        times = no_punctuation_countents.count(word)
+        times = clean_contents.count(word)
         word_result[word] = times
     # print(word_result)
 
@@ -84,6 +66,6 @@ else:
         # print(word + " " +- str(times))                
     
         # 输出到文件
-        filename = 'acount_result.txt'
+        filename = 'acount_result4.txt'
         with open(filename, 'a',encoding = 'utf8') as f_obj:
             f_obj.write(word + " " + str(times) + "\n")
