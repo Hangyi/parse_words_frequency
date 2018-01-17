@@ -1,71 +1,77 @@
-import re
+import nltk
+from nltk.corpus import stopwords
+from nltk.corpus import wordnet
+from nltk import word_tokenize, pos_tag
+from nltk.stem import WordNetLemmatizer
+
+# The following function would map the treebank tags 
+# to WordNet part of speech names:
+def get_wordnet_pos(treebank_tag):
+    """
+    return WORDNET POS compliance to WORDENT lemmatization (a,n,r,v) 
+    """
+    if treebank_tag.startswith('J'):
+        return wordnet.ADJ # ADJ形容词
+    elif treebank_tag.startswith('V'):
+        return wordnet.VERB
+    elif treebank_tag.startswith('N'):
+        return wordnet.NOUN
+    elif treebank_tag.startswith('R'):
+        return wordnet.ADV  # ADV动词
+    else:
+        # return None
+        return wordnet.NOUN
+
+
+def lemmatize_sentence(tokens):
+    """
+    lemmatize sentence
+    """
+    res = []
+    lemmatizer = WordNetLemmatizer()
+    for word, pos in pos_tag(tokens):
+        # wordnet_pos = get_wordnet_pos(pos) or wordnet.NOUN
+        wordnet_pos = get_wordnet_pos(pos) 
+        res.append(lemmatizer.lemmatize(word, pos=wordnet_pos))
+    return res
 
 file_path = '/Users/hangyi/Desktop/python_work/chapter10/alice.txt'
  
-try:
-    with open(file_path, encoding = 'utf8') as f_obj:
-        contents = f_obj.read()                                                                                    
-except FileNotFoundError:
-    msg = "Sorry, the file " + file_path + " does not exist."
-    print(msg)
-else:
-    # 使用正则
-    clean_contents = re.sub('[\t\n]+', " ", contents) # 删除制表符和换行符
-    clean_contents = re.sub("[^A-Za-z\s]", " ", contents) 
+with open(file_path, encoding = 'utf8') as f_obj:
+    contents = f_obj.read() 
+
+# 分词
+pattern = r'[A-Za-z]+'
+tokens = nltk.regexp_tokenize(contents, pattern)
+# print(tokens)
+
+# 删除停用词和长度小于3的单词
+filtered_words = [w.lower() for w in tokens if w.lower() not in stopwords.words('english') and len(w)>=3]
+# print(filtered_words)
+
+# 删除标点符号
+# words = [word for word in filtered_words if word.isalpha()]
 
 
-    words = clean_contents.split()
-    # print(words)
-    
-    # 获得去重后的单词列表
-    unique_words = list(set(words))
-    
-    # coca前150单词
-    commonWords = ["the", "be", "and", "of", "a", "in", "to", "have", "it", 
-        "i", "that", "for", "you", "he", "with", "on", "do", "say", "this",
-        "they", "is", "an", "at", "but","we", "his", "from", "that", "not", 
-        "by", "she", "or", "as", "what", "go", "their","can", "who", "get", 
-        "if", "would", "her", "all", "my", "make", "about", "know", "will", 
-        "as", "up", "one", "time", "has", "been", "there", "year", "so", 
-        "think", "when", "which", "them", "some", "me", "people", "take", 
-        "out", "into", "just", "see", "him", "your", "come", "could", "now", 
-        "than", "like", "other", "how", "then", "its", "our", "two", "more", 
-        "these", "want", "way", "look", "first", "also", "new", "because", 
-        "day", "more", "use", "no", "man", "find", "here", "thing", "give", 
-        "many", "well", "only", "those", "tell", "one", "very", "her", 
-        "even", "back", "any", "good", "woman", "through", "us", "life",
-        "child", "there", "work", "down", "may", "after", "should", "call",
-        "world", "over", "school", "still", "try", "in", "as", "last", 
-        "ask", "need", "too", "fell", "three", "when", "state", "never",
-        "become", "between", "high", "really", "something", "most", "another",
-        "much", "family", "own", "out", "leave"] 
+# 词形归并
+lemmatizered_tokens = lemmatize_sentence(filtered_words)
+# print(lemmatizered_tokens)
 
-    # 删掉长度<3的单词和处于commonWords里的单词
-    for word in unique_words[0:]:
-        if len(word) < 3 or word in commonWords:
-            unique_words.remove(word)
+# 统计频率
+freq = nltk.FreqDist(lemmatizered_tokens)
 
-    # print(unique_words)
 
-    # 统计有多少不重复的单词
-    num_unique_words = len(unique_words)
-    print(num_unique_words)
-    # print(unique_words)
-    
-    #遍历列表，统计每个单词出现的数量
-    word_result = {}
-    for word in unique_words:
-        times = clean_contents.count(word)
-        word_result[word] = times
-    # print(word_result)
+freq.plot(10, cumulative=False)
 
-    # 按顺序排列
-    sorted_word_result = sorted(word_result.items(), key=lambda items:items[1], reverse = True)
-    for word, times in sorted_word_result:
-        word = word.ljust(15)
-        # print(word + " " +- str(times))                
-    
-        # 输出到文件
-        filename = 'acount_result4.txt'
-        with open(filename, 'a',encoding = 'utf8') as f_obj:
-            f_obj.write(word + " " + str(times) + "\n")
+# 将频率从大到小排列，以freq的value排序
+sorted_freq = sorted(freq.items(), key=lambda d:d[1], reverse = True)
+print("一共有" + str(len(sorted_freq)) + "个单词参加排序")
+for key, val in sorted_freq:
+    key = key.ljust(15)
+    # print(str(key) + str(val))
+
+    # 输出到文件
+    filename = 'acount_result.txt'
+    with open(filename, 'a',encoding = 'utf8') as f_obj:
+        f_obj.write(key + " " + str(val) + "\n")
+
